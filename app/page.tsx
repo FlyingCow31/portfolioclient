@@ -1,65 +1,55 @@
-import Image from "next/image";
+import TimeLine from "@/app/components/timeline";
+import Footer from "@/app/components/footer";
 
-export default function Home() {
+
+export default function Page() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
-  );
+      <div className={' min-h-screen bg-bg'}>
+        <main className={'w-full'}>
+          <div className={'mx-auto w-fit p-3'}>
+            <p className={'font-title font-bold'}>Gaël Tournier - Espace Client</p>
+          </div>
+
+          <div className={'bg-white w-fit p-6 shadow-big border-3 ml-6'}>
+            <h1 className={'text-6xl font-black'}>Bienvenue sur <br/>votre espace!</h1>
+            <p className={'text-xl mt-6 '}>Cet espace permet de centraliser les ressources, et de faciliter la communication!</p>
+          </div>
+
+
+          {/*La le concept c'est que ça change selon ce que je mets cette div fait le long, c'est une timeline*/}
+          {/*Devient rouge si il y a quelque chose à faire*/}
+
+          <TimeLine/>
+
+            <div className={'flex w-[97%] gap-6 items-stretch justify-center mt-6 mx-6 '}>
+
+                <div className={'bg-white p-6 w-[50%] border-3 shadow-small'}>
+                  <h2 className={'text-2xl font-bold border-l-3 border-main pl-3'}>Messages</h2>
+                  <div>
+                    <p>Aucun message à afficher</p>
+                  </div>
+                </div>
+
+
+                <div className={'w-[48%] bg-white p-6 border-3 shadow-small '}>
+                    <h2 className={'text-2xl font-bold border-l-3 border-main pl-3'}>Mes Documents</h2>
+                    <div className={'flex flex-col gap-2'}>
+                        <div className={'grid grid-cols-3 items-center justify-center w-full'}>
+                            <p className={'text-left'}>Contrat de Bienvenue</p>
+                            <p className={'text-center'}>06/06/2026</p>
+                            <p className={'text-right'}>{"->"}</p>
+                        </div>
+                        <div className={'grid grid-cols-3 items-center justify-center w-full'}>
+                            <p>Facture d&#39;acompte</p>
+                            <p className={'text-center'}>06/06/2026</p>
+                            <p className={'text-right'}>{"->"}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+          <Footer/>
+      </div>
+  )
 }
