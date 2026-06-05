@@ -1,55 +1,75 @@
-import TimeLine from "@/app/components/timeline";
-import Footer from "@/app/components/footer";
+"use client"
+
+
+
+import React, {useState} from "react";
+import {useRouter} from "next/navigation";
 
 
 export default function Page() {
-  return (
-      <div className={' min-h-screen bg-bg'}>
-        <main className={'w-full'}>
-          <div className={'mx-auto w-fit p-3'}>
-            <p className={'font-title font-bold'}>Gaël Tournier - Espace Client</p>
-          </div>
 
-          <div className={'bg-white w-fit p-6 shadow-big border-3 ml-6'}>
-            <h1 className={'text-6xl font-black'}>Bienvenue sur <br/>votre espace!</h1>
-            <p className={'text-xl mt-6 '}>Cet espace permet de centraliser les ressources, et de faciliter la communication!</p>
-          </div>
+    const [username, setUsername] = useState('');
+    const [password, setPassword] = useState('');
+    const [error, setError] = useState('');
+    const router = useRouter();
+
+    const handleSubmit = async (e: React.SubmitEvent) => {
+        e.preventDefault();
+        const response = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json'},
+            body: JSON.stringify({username, password})
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            // redirection when validating first thing
+            if (data.role == 'admin') {
+                router.push('/admin');
+            } else {
+                router.push('/panel');
+            }
+
+            console.log('Logged In!');
+
+        } else {
+            const data = await response.json();
+            console.error(data.error);
+            setError('Mauvais Identifiant ou mot de passe.');
+        }
+
+    }
+
+    return(
+        <div className={'bg-bg min-h-screen flex items-center justify-center'}>
+            <div className={'bg-white w-fit h-fit p-6 shadow-big border-3'}>
+                <form onSubmit={handleSubmit}>
+                    <h1 className={'font-title text-xl font-black mb-3'}>Connexion au suivi de commande</h1>
 
 
-          {/*La le concept c'est que ça change selon ce que je mets cette div fait le long, c'est une timeline*/}
-          {/*Devient rouge si il y a quelque chose à faire*/}
+                    <label className={'text-lg font-semibold'}>Identifiants</label> <br/>
+                    <input type={"text"} className={`border-2 ${ error ? "border-red-500" : ""} w-full p-1 shadow-[2px_2px_0px_0px]`} value={username} onChange={(e) => setUsername(e.target.value)} required/>
+                    <p className={'opacity-40 italic text-sm mt-1 mb-6'}>Vos identifiants vous ont étés envoyés par mail à la signature du devis.</p>
 
-          <TimeLine/>
+                    <label className={'text-lg font-semibold'}>Mot de passe</label>
+                    <input type={"password"} className={`border-2 ${ error ? "border-red-500" : ""} w-full p-1 shadow-[2px_2px_0px_0px]`} value={password} onChange={(e) => {
+                        setPassword(e.target.value);
+                        setError('');
+                    }} required/>
+                    <p className={'opacity-40 italic text-sm mt-1'}>Votre mot de passe a été envoyé dans le même mail.</p>
 
-            <div className={'flex w-[97%] gap-6 items-stretch justify-center mt-6 mx-6 '}>
-
-                <div className={'bg-white p-6 w-[50%] border-3 shadow-small'}>
-                  <h2 className={'text-2xl font-bold border-l-3 border-main pl-3'}>Messages</h2>
-                  <div>
-                    <p>Aucun message à afficher</p>
-                  </div>
-                </div>
-
-
-                <div className={'w-[48%] bg-white p-6 border-3 shadow-small '}>
-                    <h2 className={'text-2xl font-bold border-l-3 border-main pl-3'}>Mes Documents</h2>
-                    <div className={'flex flex-col gap-2'}>
-                        <div className={'grid grid-cols-3 items-center justify-center w-full'}>
-                            <p className={'text-left'}>Contrat de Bienvenue</p>
-                            <p className={'text-center'}>06/06/2026</p>
-                            <p className={'text-right'}>{"->"}</p>
-                        </div>
-                        <div className={'grid grid-cols-3 items-center justify-center w-full'}>
-                            <p>Facture d&#39;acompte</p>
-                            <p className={'text-center'}>06/06/2026</p>
-                            <p className={'text-right'}>{"->"}</p>
-                        </div>
-                    </div>
+                    <button type={"submit"} className={'bg-main border-3 border-black shadow-small text-white px-3 py-1 mt-3'}>Se connecter</button>
+                    <p className={'text-red-500 text-sm italic mt-3'}>{error}</p>
+                </form>
+                <div className={'border-l-3 border-sec mt-6 pl-3'}>
+                    <h2 className={'teext-lg font-semibold'}>&#34;Je n&#39;ai pas reçu mes identifiants&#34;</h2>
+                    <p>
+                        Si vous n&#39;avez pas reçu vos identifiants, contactez <a href={'mailto:contact@gaeltournier.dev'}><span className={'underline decoration-2 decoration-sec underline-offset-3'}>
+                         contact@gaeltournier.dev
+                    </span></a>.</p>
                 </div>
             </div>
-
-        </main>
-          <Footer/>
-      </div>
-  )
+        </div>
+    )
 }
+
