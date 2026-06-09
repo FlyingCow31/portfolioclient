@@ -2,24 +2,35 @@
 import { NextResponse} from "next/server";
 import jwt from 'jsonwebtoken';
 import bcrypt from "bcryptjs";
+import {sql} from '@/app/lib/db';
+
 
 
 export async function POST(request: Request) {
     const {username, password} = await request.json();
-
     if (!username || !password) {
         return NextResponse.json({error: "An info is missing!"}, {status: 400});
     }
-
-    // Comparison between password and hashed version
-    const PasswordCheck = await bcrypt.compare(password, process.env.ADMIN_PASSWORD_HASH!);
-    if (username !== process.env.ADMIN_USER || !PasswordCheck) {
-        return NextResponse.json({error: "Wrong Credentials"}, {status: 401});
+    const users = await sql`SELECT * FROM users WHERE username = ${username}`;
+    const user = users[0];
+    console.log('users trouvés:', users);
+    console.log('user:', users[0]);
+    if (!user) {
+        return NextResponse.json({ error: "Wrong Credentials" }, { status: 401 });
     }
 
+
+
+    // Comparison between password and hashed version
+    const PasswordCheck = await bcrypt.compare(password, user.password);
+    if (!PasswordCheck) {
+        return NextResponse.json({error: "Wrong Credentials"}, {status: 401});
+    }
+    console.log('password check:', PasswordCheck);
+
     // Token generation if everything is good
-    const role = username === process.env.ADMIN_USER ? 'admin' : 'client';
-    const token = jwt.sign({username, role}, process.env.JWT_SECRET!, { expiresIn: `1h`});
+    const role = user.role;
+    const token = jwt.sign({id: user.id, username, role}, process.env.JWT_SECRET!, { expiresIn: `1h`});
 
     const response = NextResponse.json({success: true});
 

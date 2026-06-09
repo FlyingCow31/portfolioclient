@@ -2,53 +2,31 @@
 
 import {MessageSquareWarning} from "lucide-react";
 
-const trucs = [
-    {
-        name: "Cahier des charges",
-        index: 1,
-        color: "main",
-        date: "03/06/2026"
-    },
-    {
-        name: "Design",
-        index: 2,
-        color: "main",
-        date: "03/06/2026"
-    },
-
-    {
-        name: "Développement interface",
-        index: 3,
-        color: "main",
-        error: true,
-        errorName: "Error JSP"
-    },
-    {
-        name: "Déploiement",
-        color: "main",
-        index: 4,
-        date: "planifiée",
-        planned: true
-    },
-
-]
+type Updates = {
+    id: number;
+    name: string;
+    error: boolean;
+    error_name: string;
+    planned: boolean;
+    date: string;
+};
 
 
 
-export default function TimeLine() {
-
-
-
+export default function TimeLine({ Updates }: { Updates: Updates[] }) {
+    
+    
     const basic = 5;
     let nbProjects = 0;
 
-    trucs.forEach(() => nbProjects += 1);
-    const attentionNeeded = trucs.find((truc) => truc.error)?.errorName;
+    Updates.forEach(() => nbProjects += 1);
+    const attentionNeeded = Updates.find((truc) => truc.error)?.error_name;
 
 
 
-
-    const anchorpoints = trucs.map((truc=> basic + (truc.index * 10)) );
+    if (Updates.length === 0) return <div className={'bg-white w-fit ml-6 mt-6 border-3 shadow-big p-6 font-black text-2xl'}>La commande n&#39;a pas encore commencée</div>
+    
+    const anchorpoints = Updates.map((truc=> basic + (truc.id * 10)) );
     const extendHR = `${Math.max(...anchorpoints) + 10}%`;
     // For mobile, only display last advancement
 
@@ -70,12 +48,12 @@ export default function TimeLine() {
                     {attentionNeeded && <p className={'text-red-500 text-center'}>Attention: {attentionNeeded}</p>}
                 </div>
 
-                {trucs.map((truc) => {
+                {Updates.map((truc) => {
                     return(
                         <div
-                            key={truc.index}
+                            key={truc.id}
                              className={`flex flex-col min-h-30 w-20 absolute top-[43%] items-center `}
-                            style={{ left : `${basic + (truc.index * 10)}%`}}>
+                            style={{ left : `${basic + (truc.id * 10)}%`}}>
                             <div className={`${truc.error ? "bg-red-500" : `${truc.planned ? "bg-sec opacity-50" : "bg-main"}`}  h-13 w-15 shadow-small border-2 flex justify-center items-center`}>
                                 {truc.error && <MessageSquareWarning />}
                             </div>

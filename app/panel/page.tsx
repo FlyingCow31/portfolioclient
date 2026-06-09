@@ -1,9 +1,29 @@
+"use client"
+
 import TimeLine from "@/app/components/timeline";
 import Footer from "@/app/components/footer";
+import {useEffect, useState} from "react";
 
 
 export default function Page() {
-  return (
+
+    const [projects, setProjects] = useState([]);
+    const [updates, setUpdates] = useState([]);
+
+    useEffect(() => {
+        fetch('/api/projects')
+            .then(res => res.json())
+            .then(async (projects) => {
+                setProjects(projects);
+                if (projects[0]) {
+                    const res = await fetch(`/api/projects/${projects[0].id}/updates`);
+                    const data = await res.json();
+                    setUpdates(data);
+                }
+        });
+    }, []);
+
+    return (
       <div className={' min-h-screen bg-bg'}>
         <main className={'w-full'}>
           <div className={'mx-auto w-fit p-3'}>
@@ -19,7 +39,7 @@ export default function Page() {
           {/*La le concept c'est que ça change selon ce que je mets cette div fait le long, c'est une timeline*/}
           {/*Devient rouge si il y a quelque chose à faire*/}
 
-          <TimeLine/>
+          <TimeLine Updates={updates}/>
 
             <div className={'flex w-[97%] gap-6 items-stretch justify-center mt-6 mx-6 '}>
 

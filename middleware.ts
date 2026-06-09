@@ -1,6 +1,6 @@
 import { NextRequest} from "next/server";
 import { NextResponse} from "next/server";
-import { jwtVerify} from "jose";
+import { jwtVerify } from "jose";
 
 
 export async function middleware(request: NextRequest) {
@@ -22,6 +22,7 @@ export async function middleware(request: NextRequest) {
         const { payload } = await jwtVerify(token, secret);
 
         const role = payload.role as string;
+
 
         // auto-redirection if the token is valid
         if (pathname === '/') {
