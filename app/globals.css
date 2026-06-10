@@ -28,3 +28,12 @@
   --font-title: var(--font-public-sans);
   --font-body: var(--font-open-sans);
 }
+
+@layer utilities {
+  .hover-timeline {
+    transition: all 100ms ease;
+  }
+  .hover-timeline:hover {
+    background-color: red;
+  }
+}

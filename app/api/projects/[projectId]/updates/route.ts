@@ -32,12 +32,15 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{p
 }
 
 
-export async function POST(request: NextRequest, { params }: { params: Promise<{ projectId: string}>}): Promise<NextResponse> {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ projectId: string }>}): Promise<NextResponse> {
 
     if (!AdminCheck(request)) return NextResponse.json({error: "Unauthorized"}, {status: 401});
 
     const { projectId } = await params;
+    if (!projectId) return NextResponse.json({success: false});
+
     const { name, error, error_name, planned, date } = await request.json();
+
 
     try {
         await sql`
@@ -49,7 +52,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     } catch (error) {
         console.log("Error: ", error);
         return NextResponse.json({success: false});
-
     }
-
 }
+
+

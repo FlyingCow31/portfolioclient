@@ -2,7 +2,8 @@
 
 import {MessageSquareWarning} from "lucide-react";
 
-type Updates = {
+
+export type Updates = {
     id: number;
     name: string;
     error: boolean;
@@ -10,10 +11,14 @@ type Updates = {
     planned: boolean;
     date: string;
 };
+interface timeLineProps {
+    isAdmin?: boolean;
+    Updates: Updates[];
+    onDelete?: (updateId: number) => void;
+}
 
 
-
-export default function TimeLine({ Updates }: { Updates: Updates[] }) {
+export default function TimeLine({ Updates, isAdmin, onDelete } : timeLineProps ) {
     
     
     const basic = 5;
@@ -29,6 +34,19 @@ export default function TimeLine({ Updates }: { Updates: Updates[] }) {
     const anchorpoints = Updates.map((truc=> basic + (truc.id * 10)) );
     const extendHR = `${Math.max(...anchorpoints) + 10}%`;
     // For mobile, only display last advancement
+
+    const handleDeletionOfProject = async (updateId: number) => {
+        if (!isAdmin) return
+
+        const response = await fetch(`/api/updates/${updateId}`, {
+            method: 'DELETE'
+        });
+        if (response.ok) {
+            onDelete?.(updateId);
+        } else {
+            alert('Erreur de suppression');
+        }
+    }
 
     return (
         <div>
@@ -52,11 +70,21 @@ export default function TimeLine({ Updates }: { Updates: Updates[] }) {
                     return(
                         <div
                             key={truc.id}
-                             className={`flex flex-col min-h-30 w-20 absolute top-[43%] items-center `}
+                             className={`flex flex-col min-h-30 w-20 absolute top-[43%] items-center`}
                             style={{ left : `${basic + (truc.id * 10)}%`}}>
-                            <div className={`${truc.error ? "bg-red-500" : `${truc.planned ? "bg-sec opacity-50" : "bg-main"}`}  h-13 w-15 shadow-small border-2 flex justify-center items-center`}>
+                            {/*Div without effect for members only*/}
+                            {!isAdmin && <div className={`${truc.error ? "bg-red-500" : `${truc.planned ? "bg-sec opacity-50" : "bg-main"}`}  h-13 w-15 shadow-small border-2 flex justify-center items-center`}>
                                 {truc.error && <MessageSquareWarning />}
-                            </div>
+                            </div>}
+
+                            {/*Div for admin with deletion*/}
+                            {isAdmin &&
+                                <button
+                                onClick={() => handleDeletionOfProject(truc.id)}
+                                    className={`${truc.error ? "bg-red-500 hover:bg-red-800" : `${truc.planned ? "bg-sec opacity-50" : "bg-main"}`}  h-13 w-15 shadow-small border-2 flex justify-center items-center hover:bg-red-500 transition-all duration-100`} >
+                                    {truc.error && <MessageSquareWarning />}
+                                </button>
+                            }
                             <p className={'mt-3 text-center'}>{truc.name}</p>
                             <p className={'opacity-50 italic text-sm text-center'}>{truc.date}</p>
                         </div>
