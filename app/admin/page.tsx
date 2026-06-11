@@ -1,6 +1,7 @@
 "use client";
 import React, {useEffect, useState} from "react";
 import TimeLine, { Updates } from '@/app/components/timeline';
+import {error} from "next/dist/build/output/log";
 
 
 export default function Page() {
@@ -12,6 +13,12 @@ export default function Page() {
         project_title: string;
         project_id: number;
         last_activity: string;
+    };
+    type Document = {
+        id: number;
+        name: string;
+        url: string;
+        created_at: string;
     };
 
     const [clients, setClients] = useState<Client[]>([]);
@@ -49,16 +56,16 @@ export default function Page() {
         setUpdates([]);
         setSelectedUser(client);
         setModaleTwoOpen(true)
-        console.log(client.id);
+
+
         const projectRes = await fetch(`/api/projects?userId=${client.id}`);
 
         const projects = await projectRes.json();
-        console.log("projects: " + projects);
+
         if (projects[0]) {
             setCurrentProjectId(projects[0].id);
             const updatesRes = await fetch(`/api/projects/${projects[0].id}/updates`);
             const data = await updatesRes.json();
-            console.log('updates: ' + data);
             setUpdates(data);
         }
     }
@@ -72,9 +79,9 @@ export default function Page() {
 
         const res = await fetch(`/api/projects/${currentProjectId}/updates`);
         const data = await res.json();
-        console.log(data);
+
         setUpdates(data);
-        console.log("ça arrive la");
+
     }
 
 
@@ -92,7 +99,64 @@ export default function Page() {
         }
     }
 
+    // Document feature
 
+    const [ documentModal, setDocumentModal ] = useState(false);
+    const [ selectedUserDocs, setSelectedUserDocs ] = useState< Client | null >(null);
+    const [ documents, setDocuments ] = useState<Document[]>([]);
+    const [ docFormModal, setDocFormModal ] = useState(false);
+    const [ documentForm, setDocumentForm ] = useState<{ file: File | null, userId: string }>({
+        file: null,
+        userId: ''
+    });
+
+    const handleGetDocuments = async (client: Client) => {
+        setSelectedUserDocs(client);
+        setDocumentModal(true);
+
+        const response = await fetch(`/api/documents?userId=${client.id}`);
+        const data = await response.json();
+        setDocuments(data);
+    };
+
+    const handleDelDocuments = async (documentId: number) => {
+
+        const response = await fetch(`/api/documents/${documentId}`, {
+            method: 'DELETE'
+        });
+
+        if (response.ok) {
+            const response = await fetch(`/api/documents?userId=${selectedUserDocs?.id}`);
+            const data = await response.json();
+            setDocuments(data);
+        } else {
+            alert("Error with deletion.");
+        }
+    };
+
+    const handleDocumentCreation = async (e: React.SubmitEvent) => {
+        e.preventDefault();
+        if (!documentForm.file) return alert("veuillez selectionner un fichier!");
+
+        const formData = new FormData();
+
+        formData.append('file', documentForm.file!);
+        formData.append('userId', selectedUserDocs!.id.toString());
+
+
+        const response = await fetch(`/api/documents`, {
+            method: 'POST',
+            body: formData
+        });
+
+        if (response.ok) {
+            const response = await fetch(`/api/documents?userId=${selectedUserDocs?.id}`);
+            const data = await response.json();
+            setDocuments(data);
+        } else {
+            alert("Error with creation.");
+        }
+    }
 
 
     return (
@@ -119,7 +183,7 @@ export default function Page() {
                             <p>{client.project_title || "----"}</p>
                             <p>{client.last_activity ? new Date(client.last_activity).toLocaleDateString('fr-FR') : "Aucune activité"}</p>
                             <button className={'w-fit bg-sec border-2 p-1'} onClick={() => handleActivityButton(client)}>Voir l&#39;activité</button>
-                            <button className={'w-fit bg-sec border-2 p-1'}>Voir les documents</button>
+                            <button className={'w-fit bg-sec border-2 p-1'} onClick={() => handleGetDocuments(client)}>Voir les documents</button>
                         </div>
                 ))}
             </div>
@@ -148,7 +212,7 @@ export default function Page() {
             </div>}
             {ModaleTwoOpen && selectedUser && (
                 <div>
-                        <div className={'absolute bg-white top-5 left-10 w-[95%] border-3 shadow-big p-6 max-h-[90vh] overflow-y-auto pb-100'}>
+                    <div className={'absolute bg-white top-5 left-10 w-[95%] border-3 shadow-big p-6 max-h-[90vh] overflow-y-auto pb-100'}>
                     <button onClick={() => setModaleTwoOpen(false) } className={'ml-6 mb-6 p-1 px-3 bg-main border-2 font-black'}>X</button>
                     <button className={'ml-10 p-1 px-3 bg-main border-2 font-black'} onClick={() => setNewUpdate(true)}>Nouvelle Avancée</button>
 
@@ -192,6 +256,42 @@ export default function Page() {
                     </div>
                 </div>)
             }
+            {documentModal && (
+                <div>
+                    <div className={'absolute bg-white top-5 left-10 w-[95%] border-3 shadow-big p-6 max-h-[90vh] overflow-y-auto pb-100'}>
+                        <button onClick={() => setDocumentModal(false)}>Fermer</button>
+                        <button onClick={() => setDocFormModal(true)}>Add a new file</button>
+                        <div className={'flex flex-col gap-2'}>
+                            {documents.map((doc, index) => {
+                                return (
+
+                                    <div className={'grid grid-cols-4 items-center justify-center w-full bg-red-500'} key={index}>
+                                        <p className={'text-left'}>{doc.name}</p>
+                                        <p className={'text-center'}>{doc.created_at}</p>
+                                        <a className={'text-right'} href={doc.url}>{"->"}</a>
+                                        <button onClick={() => handleDelDocuments(doc.id)}>Supprimer</button>
+                                    </div>
+                                )
+                            })}
+                        </div>
+                        {docFormModal &&
+                        <div>
+                            <button onClick={() => setDocFormModal(false)}>X</button>
+                            <h2>Nouveau document</h2>
+
+                            <form onSubmit={handleDocumentCreation}>
+                                <label>Fichier</label>
+                                <input type={"file"}
+                                       accept={"application/pdf"}
+                                        onChange={(e) => setDocumentForm({...documentForm, file: e.target.files?.[0] || null})}
+                                />
+
+                                <button type={"submit"}>Envoyer un nouveau document</button>
+                            </form>
+                        </div>}
+                    </div>
+                </div>
+            )}
         </main>
 
     </div>

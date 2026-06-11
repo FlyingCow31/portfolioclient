@@ -31,7 +31,7 @@ export default function TimeLine({ Updates, isAdmin, onDelete } : timeLineProps 
 
     if (Updates.length === 0) return <div className={'bg-white w-fit ml-6 mt-6 border-3 shadow-big p-6 font-black text-2xl'}>La commande n&#39;a pas encore commencée</div>
     
-    const anchorpoints = Updates.map((truc=> basic + (truc.id * 10)) );
+    const anchorpoints = Updates.map((truc, index:number)=> basic + ((index + 1) * 10)) ;
     const extendHR = `${Math.max(...anchorpoints) + 10}%`;
     // For mobile, only display last advancement
 
@@ -66,12 +66,12 @@ export default function TimeLine({ Updates, isAdmin, onDelete } : timeLineProps 
                     {attentionNeeded && <p className={'text-red-500 text-center'}>Attention: {attentionNeeded}</p>}
                 </div>
 
-                {Updates.map((truc) => {
+                {Updates.map((truc, index:number) => {
                     return(
                         <div
                             key={truc.id}
                              className={`flex flex-col min-h-30 w-20 absolute top-[43%] items-center`}
-                            style={{ left : `${basic + (truc.id * 10)}%`}}>
+                            style={{ left : `${basic + (index * 10)}%`}}>
                             {/*Div without effect for members only*/}
                             {!isAdmin && <div className={`${truc.error ? "bg-red-500" : `${truc.planned ? "bg-sec opacity-50" : "bg-main"}`}  h-13 w-15 shadow-small border-2 flex justify-center items-center`}>
                                 {truc.error && <MessageSquareWarning />}
