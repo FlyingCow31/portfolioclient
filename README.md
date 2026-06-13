@@ -1,4 +1,25 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+
+
+## Panel for managing an order for PME
+This is a panel for "PMEs" (small & medium enterprises) and their clients to create a feeling of security
+for the client. They can follow up on what you do, find all their documents in there and have all of your 
+contacts. 
+
+### 👾 Features 
+- Document upload (up to 4.5mb) all serverless with vercel Blob
+- User creation/deletion directly in the admin panel 
+- Everything is managed securely within the webapp (project & updates creation/deletion, etc.)
+- Great front-end 
+
+### Roadmap (todo)
+- Mobile UI/UX
+- No project deletion (user deletion only) 
+- No possibility for multiple projects
+- No archive (weak DB)
+- message feature 
+- expanding this tool to create a tool to manage the orders, invoice, taxes, etc. directly in the app. 
+
+
 
 ## Getting Started
 
@@ -6,31 +27,51 @@ First, run the development server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Then, create a Neon Database, create the tables with the following arguments: 
+```sql
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+  CREATE TABLE IF NOT EXISTS users (
+    id SERIAL PRIMARY KEY,
+    username VARCHAR(255) NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    role VARCHAR(255) NOT NULL DEFAULT 'client',
+    created_at TIMESTAMP DEFAULT NOW(),
+    contact VARCHAR(255)
+  );
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+  CREATE TABLE IF NOT EXISTS projects (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    title VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT NOW()
+  );
 
-## Learn More
+  CREATE TABLE IF NOT EXISTS updates (
+    id SERIAL PRIMARY KEY,
+    project_id INTEGER REFERENCES projects(id) ON DELETE CASCADE,
+    name VARCHAR(255) NOT NULL,
+    error BOOLEAN DEFAULT FALSE,
+    error_name TEXT,
+    planned BOOLEAN DEFAULT FALSE,
+    date VARCHAR(255),
+    created_at TIMESTAMP DEFAULT NOW()
+  );
+  
+  CREATE TABLE documents (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+  name VARCHAR(255) NOT NULL,
+  url VARCHAR(500) NOT NULL,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+```
+Copy the URL and add it into the .env with `DATABASE_URL=[yourURL].`
 
-To learn more about Next.js, take a look at the following resources:
+Then, create a Blob on vercel Blob and paste the secret into the .env with `BLOB_READ_WRITE_TOKEN=[yourURL].`
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Restart the server
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+And you're all set! 
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.

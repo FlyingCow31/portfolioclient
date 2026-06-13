@@ -2,7 +2,7 @@ import { NextRequest} from "next/server";
 import { NextResponse} from "next/server";
 import { jwtVerify } from "jose";
 
-
+// middleware to check token and secure routes
 export async function middleware(request: NextRequest) {
     const token = request.cookies.get('token')?.value;
     const { pathname } = request.nextUrl;

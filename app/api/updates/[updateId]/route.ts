@@ -6,7 +6,7 @@ import {sql} from "@/app/lib/db";
 
 
 
-
+// Delete the updates (creation is in projects folder)
 export async function DELETE(request: NextRequest, {params}: {params: Promise<{updateId: string}>}) {
 
     if (!AdminCheck(request)) return NextResponse.json({error: 'Unauthorized'}, {status: 401});
@@ -16,8 +16,8 @@ export async function DELETE(request: NextRequest, {params}: {params: Promise<{u
 
     try {
         await sql`
-        DELETE FROM updates WHERE id = ${updateId}
-    `;
+            DELETE FROM updates WHERE id = ${updateId}
+        `;
         return NextResponse.json({success: true});
     } catch (error) {
         console.log("Error with the delete function", error);

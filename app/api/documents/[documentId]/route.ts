@@ -3,7 +3,7 @@ import {AdminCheck} from "@/app/lib/auth";
 import {sql} from "@/app/lib/db";
 import {del} from "@vercel/blob";
 
-
+// Delete a document (admin only)
 export async function DELETE(request: NextRequest, { params } : { params : Promise<{documentId: string}>}) {
     if (!AdminCheck(request)) return NextResponse.json({error: 'Unauthorized'}, {status: 401});
 

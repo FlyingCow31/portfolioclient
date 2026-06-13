@@ -41,8 +41,8 @@ export default function Page() {
     }
 
     return(
-        <div className={'bg-bg min-h-screen flex items-center justify-center'}>
-            <div className={'bg-white w-fit h-fit p-6 shadow-big border-3'}>
+        <div className={'bg-bg min-h-screen flex items-center justify-center '}>
+            <div className={'bg-white md:w-fit h-fit p-6 shadow-big border-3 w-[95%]'}>
                 <form onSubmit={handleSubmit}>
                     <h1 className={'font-title text-xl font-black mb-3'}>Connexion au suivi de commande</h1>
 

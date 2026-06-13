@@ -1,10 +1,9 @@
 import {NextRequest, NextResponse} from "next/server";
-import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import {sql} from "@/app/lib/db";
 import {AdminCheck} from "@/app/lib/auth";
 
-
+// Create a user for admin route
 export async function POST(request: NextRequest) {
 
     if (!AdminCheck(request)) return NextResponse.json({error: "Unauthorized"}, {status: 401});

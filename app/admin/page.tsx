@@ -1,25 +1,11 @@
 "use client";
 import React, {useEffect, useState} from "react";
 import TimeLine, { Updates } from '@/app/components/timeline';
-import {error} from "next/dist/build/output/log";
+import { ClientDocument, Client } from '@/app/types';
 
 
 export default function Page() {
-    type Client = {
-        id: number;
-        username: string;
-        contact: string;
-        role: string;
-        project_title: string;
-        project_id: number;
-        last_activity: string;
-    };
-    type Document = {
-        id: number;
-        name: string;
-        url: string;
-        created_at: string;
-    };
+
 
     const [clients, setClients] = useState<Client[]>([]);
     const [modalOpen, setModalOpen] = useState(false);
@@ -36,7 +22,7 @@ export default function Page() {
         planned: false,
         date: ''
     });
-    const [submitError, setSubmitError] = useState(false);
+
     const [selectedUser, setSelectedUser] = useState<Client | null>(null);
     const [ModaleTwoOpen, setModaleTwoOpen] = useState(false);
     const [updates, setUpdates] = useState<Updates[]>([]);
@@ -70,6 +56,7 @@ export default function Page() {
         }
     }
 
+
     const handleAddUpdate = async (e: React.SubmitEvent) => {
         e.preventDefault();
         await fetch(`/api/projects/${currentProjectId}/updates`, {
@@ -81,6 +68,14 @@ export default function Page() {
         const data = await res.json();
 
         setUpdates(data);
+        setUpdateForm({
+            name: '',
+            error: false,
+            error_name: '',
+            planned: false,
+            date: ''
+        });
+        setNewUpdate(false);
 
     }
 
@@ -93,6 +88,9 @@ export default function Page() {
         });
 
         if (response.ok) {
+            fetch('/api/users')
+                .then(res => res.json())
+                .then(data => setClients(data))
             setModalOpen(false);
         } else {
 
@@ -103,7 +101,7 @@ export default function Page() {
 
     const [ documentModal, setDocumentModal ] = useState(false);
     const [ selectedUserDocs, setSelectedUserDocs ] = useState< Client | null >(null);
-    const [ documents, setDocuments ] = useState<Document[]>([]);
+    const [ documents, setDocuments ] = useState<ClientDocument[]>([]);
     const [ docFormModal, setDocFormModal ] = useState(false);
     const [ documentForm, setDocumentForm ] = useState<{ file: File | null, userId: string }>({
         file: null,
@@ -159,60 +157,130 @@ export default function Page() {
     }
 
 
+    // project creation
+    const [projectModal , setProjectModal ] = useState(false);
+    const [selectedUserProj, setSelectedUserProj] = useState< Client | null >(null);
+    const [ projectName, setProjectName] = useState({
+        name: '',
+        userId: ''
+    });
+
+    const handleProjectCreation = async (e: React.SubmitEvent) => {
+        e.preventDefault();
+
+        if (!projectName.name) return alert('Un nom de projet est obligatoire!');
+
+        const formData = new FormData();
+        formData.append('name', projectName.name);
+        formData.append('userId', selectedUserProj!.id.toString());
+
+        const response = await fetch('/api/projects/create', {
+            method: 'POST',
+            body: formData
+        });
+
+        if (response.ok) {
+            await fetch('/api/users')
+                .then(res => res.json())
+                .then(data => setClients(data));
+            setProjectModal(false);
+        } else {
+            alert('erreur lors de la création du projet');
+        }
+    }
+
+    const handleUserDeletion = async (userId: number) => {
+        const response = await fetch(`/api/users/${userId.toString()}`, {
+            method: 'DELETE'
+        })
+
+        if (response.ok) {
+            alert('Client supprimé');
+            await fetch('/api/users')
+                .then(res => res.json())
+                .then(data => setClients(data));
+        } else {
+            alert('erreur dans la suppression du client');
+        }
+    };
+
     return (
     <div className={'min-h-screen bg-bg overflow-y-auto'}>
         <main className={'relative'}>
             <p className={'font-title text-2xl text-center mt-3'}>Gaël Tournier - Pannel Administrateur</p>
 
-            <div className={'flex flex-col ml-3'}>
+            <div className={'flex flex-col ml-3 bg-white mt-15 p-6 border-3 shadow-big'}>
                 <button className={'w-fit bg-sec shadow-small border-3 p-3 my-3'} onClick={() => setModalOpen(true)}>Créer un nouvel Utilisateur</button>
+                <div className={'flex gap-3 md:block overflow-x-auto mt-3 pb-6'}>
+                    <div className={'flex flex-col gap-3 md:grid md:grid-cols-7'}>
+                        <p>Rôle</p>
+                        <p>Username</p>
+                        <p>Contact</p>
+                        <p>project Name</p>
+                        <p>Last activity </p>
 
-                <div className={'grid grid-cols-6 mt-3'}>
-                    <p>Username</p>
-                    <p>Contact</p>
-                    <p>project Name</p>
-                    <p>Last activity date</p>
-                    <p>Voir l&#39;activité</p>
-                    <p>Voir les documents</p>
+                    </div>
+                    <hr/>
+                    {clients.map((client, index) => (
+                            <div key={index}  className={`flex flex-col gap-6 md:grid md:grid-cols-7 md:border-b border-black/25 md:py-2 md:items-center`}>
+                                {client.role == 'admin' ? <p>Admin</p> : <button onClick={() => {void handleUserDeletion(client.id)}} className={'w-fit underline'}>Supprimer</button>}
+                                <p>{client.username}</p>
+                                <p>{client.contact || "aucun contact"}</p>
+                                {client.project_title
+                                    ?
+                                    <p>{client.project_title}</p>
+                                    :
+                                    <button
+                                        className={'bg-main w-fit p-2 border-2 border-black text-white'}
+                                        onClick={() => {setSelectedUserProj(client); setProjectModal(true);}}
+                                    >Créer un projet</button>}
+                                <p>{client.last_activity ? new Date(client.last_activity).toLocaleDateString('fr-FR') : "Aucune activité"}</p>
+                                <button className={'w-fit bg-sec border-2 p-1'} onClick={() => handleActivityButton(client)}>Voir l&#39;activité</button>
+                                <button className={'w-fit bg-sec border-2 p-1'} onClick={() => handleGetDocuments(client)}>Voir les documents</button>
+                            </div>
+                    ))}
                 </div>
-                <hr/>
-                {clients.map((client, index) => (
-                        <div key={index}  className={'grid grid-cols-6 border-b-1 border-black/25 py-2 items-center'}>
-                            <p>{client.username}</p>
-                            <p>{client.contact}</p>
-                            <p>{client.project_title || "----"}</p>
-                            <p>{client.last_activity ? new Date(client.last_activity).toLocaleDateString('fr-FR') : "Aucune activité"}</p>
-                            <button className={'w-fit bg-sec border-2 p-1'} onClick={() => handleActivityButton(client)}>Voir l&#39;activité</button>
-                            <button className={'w-fit bg-sec border-2 p-1'} onClick={() => handleGetDocuments(client)}>Voir les documents</button>
-                        </div>
-                ))}
             </div>
+            {projectModal &&
+                <div className={'absolute bg-white top-[0%] left-5 md:top-50 md:left-[40%] border-3 shadow-big p-6 max-h-[90vh] overflow-y-auto '}>
+                    <button onClick={() => setProjectModal(false)} className={'m-3 p-1 px-3 bg-main border-2 font-black'}>X</button>
+                    <form onSubmit={handleProjectCreation} className={'flex flex-col gap-3'}>
+                        <div>
+                            <label className={'ml-3'}>Nom de projet</label>
+                            <input type={"text"} className={'ml-3 border shadow-small'} onChange={(e) => setProjectName({...projectName, name: e.target.value})}/>
+                        </div>
+
+                        <button type={"submit"} className={'bg-sec py-1 px-3 border-2 shadow-small ml-3'}>Envoyer</button>
+                    </form>
+                </div>
+            }
             {modalOpen &&
-            <div className={'absolute bg-white top-50 left-[40%] border-3 shadow-big p-6 max-h-[90vh] overflow-y-auto '}>
+            <div className={'absolute top-[0%] bg-white md:top-50 md:left-[40%] border-3 shadow-big p-6 max-h-[90vh] overflow-y-auto '}>
                 <button onClick={() => setModalOpen(false)} className={'m-3 p-1 px-3 bg-main border-2 font-black'}>X</button>
                 <h2 className={'font-black text-3xl ml-3'}>Créer un nouveau Client</h2>
                 <form onSubmit={handleCreate} className={'flex flex-col ml-3'}>
                     <label>Username</label>
                     <input
-                        className={'border-1'}
+                        className={'border'}
                         type={"text"} onChange={(e) => setForm({...form, username: e.target.value})}/>
 
                     <label>Password</label>
-                    <input className={'border-1'} type={"text"} onChange={(e) => setForm({...form, password: e.target.value})}/>
+                    <input className={'border'} type={"text"} onChange={(e) => setForm({...form, password: e.target.value})}/>
 
                     <label>Role</label>
-                    <input type={"radio"} name={"role"} value={'client'} checked={form.role === 'client'} onChange={() => setForm({...form, role: 'client'})}/> Client
-                    <input  type={"radio"} name={"role"} value={'admin'} checked={form.role === 'admin'} onChange={() => setForm({...form, role: 'admin'})}/> Admin
-
+                    <div className={'flex flex-wrap gap-2'}>
+                        Client <input type={"radio"} name={"role"} value={'client'} checked={form.role === 'client'} onChange={() => setForm({...form, role: 'client'})}/>
+                        Admin <input  type={"radio"} name={"role"} value={'admin'} checked={form.role === 'admin'} onChange={() => setForm({...form, role: 'admin'})}/>
+                    </div>
                     <label>Contact</label>
-                    <input className={'border-1'} type={"text"} onChange={(e) => setForm({...form, contact: e.target.value})}/>
+                    <input className={'border'} type={"text"} onChange={(e) => setForm({...form, contact: e.target.value})}/>
 
                     <button type={'submit'} className={'bg-main text-white py-1 px-3 w-fit mx-auto mt-3 border-2 border-black shadow-small'}>Envoyer</button>
                 </form>
             </div>}
             {ModaleTwoOpen && selectedUser && (
                 <div>
-                    <div className={'absolute bg-white top-5 left-10 w-[95%] border-3 shadow-big p-6 max-h-[90vh] overflow-y-auto pb-100'}>
+                    <div className={'absolute bg-white top-5 left-3 md:left-10 w-[95%] border-3 shadow-big p-6 max-h-[90vh] overflow-y-auto '}>
                     <button onClick={() => setModaleTwoOpen(false) } className={'ml-6 mb-6 p-1 px-3 bg-main border-2 font-black'}>X</button>
                     <button className={'ml-10 p-1 px-3 bg-main border-2 font-black'} onClick={() => setNewUpdate(true)}>Nouvelle Avancée</button>
 
@@ -258,35 +326,42 @@ export default function Page() {
             }
             {documentModal && (
                 <div>
-                    <div className={'absolute bg-white top-5 left-10 w-[95%] border-3 shadow-big p-6 max-h-[90vh] overflow-y-auto pb-100'}>
-                        <button onClick={() => setDocumentModal(false)}>Fermer</button>
-                        <button onClick={() => setDocFormModal(true)}>Add a new file</button>
+                    <div className={'absolute bg-white top-5 left-3 md:left-10 w-[95%] border-3 shadow-big p-6 max-h-[90vh] overflow-y-auto pb-100'}>
+                        <button onClick={() => setDocumentModal(false)} className={'bg-main px-3 py-1 text-white border-2 border-black'}>Fermer</button>
+                        <button onClick={() => setDocFormModal(true)}
+                                className={'mb-6 ml-10 bg-sec px-3 py-1 border-2'}>Add a new file</button>
                         <div className={'flex flex-col gap-2'}>
                             {documents.map((doc, index) => {
                                 return (
-
-                                    <div className={'grid grid-cols-4 items-center justify-center w-full bg-red-500'} key={index}>
-                                        <p className={'text-left'}>{doc.name}</p>
-                                        <p className={'text-center'}>{doc.created_at}</p>
-                                        <a className={'text-right'} href={doc.url}>{"->"}</a>
-                                        <button onClick={() => handleDelDocuments(doc.id)}>Supprimer</button>
+                                    <div key={index}>
+                                        <div className={'flex flex-col md:grid md:grid-cols-4 items-center justify-center w-full '} >
+                                            <p className={'text-left text-xl text-main font-bold'}>{doc.name}</p>
+                                            <p className={'text-center'}>{new Date(doc.created_at).toLocaleDateString('fr-FR')}</p>
+                                            <a className={'text-right'} href={doc.url}>{"télécharger"}</a>
+                                            <button onClick={() => handleDelDocuments(doc.id)}
+                                            className={'bg-sec w-fit justify-center mx-auto py-1 px-3 border-2'}>Supprimer</button>
+                                        </div>
+                                        <hr className={'mt-2'}/>
                                     </div>
                                 )
                             })}
                         </div>
                         {docFormModal &&
-                        <div>
-                            <button onClick={() => setDocFormModal(false)}>X</button>
-                            <h2>Nouveau document</h2>
+                        <div className={'mt-3 border-2 shadow-small p-3'}>
+                            <button onClick={() => setDocFormModal(false)}
+                            className={'bg-main text-white border-2 border-black shadow-small px-3 py-1'}>Fermer</button>
+                            <h2 className={'mt-3 text-2xl font-semibold'}>Nouveau document</h2>
 
-                            <form onSubmit={handleDocumentCreation}>
-                                <label>Fichier</label>
-                                <input type={"file"}
-                                       accept={"application/pdf"}
-                                        onChange={(e) => setDocumentForm({...documentForm, file: e.target.files?.[0] || null})}
-                                />
-
-                                <button type={"submit"}>Envoyer un nouveau document</button>
+                            <form onSubmit={handleDocumentCreation} className={'flex flex-col gap-3'}>
+                                <div className={'flex gap-3'}>
+                                    <label className={'text-xl text-main'}>Fichier:</label>
+                                    <input type={"file"}
+                                           accept={"application/pdf"}
+                                           onChange={(e) => setDocumentForm({...documentForm, file: e.target.files?.[0] || null})}
+                                           className={'border text-center shadow-small p-3 w-[40%] md:w-fit'}
+                                    />
+                                </div>
+                                <button type={"submit"} className={'border-3 w-fit bg-main text-white border-black px-3 py-1'}>Envoyer un nouveau document</button>
                             </form>
                         </div>}
                     </div>

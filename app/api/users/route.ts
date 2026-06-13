@@ -3,7 +3,7 @@ import {NextRequest, NextResponse} from "next/server";
 import {sql} from "@/app/lib/db";
 import {AdminCheck} from "@/app/lib/auth";
 
-
+// Get the users to display on the admin panel (with the infos)
 export async function GET(request: NextRequest) {
     if (!AdminCheck(request)) {
         return NextResponse.json({error: "Unauthorized"}, {status: 401});

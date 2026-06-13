@@ -1,28 +1,29 @@
 import {NextRequest, NextResponse} from "next/server";
 import {AdminCheck, AuthUser} from "@/app/lib/auth";
-import {list, put} from "@vercel/blob";
+import {put} from "@vercel/blob";
 import {sql} from "@/app/lib/db";
 
-
+// Admin only, sends a document on the blob, then sends the URL on the database to be accessed quicker
 export async function POST(request: NextRequest) {
-    console.log('ça arrive')
+
     if (!AdminCheck(request)) return NextResponse.json({error: "Unauthorized"}, {status: 401});
-    console.log('ça passe')
+
     const formData = await request.formData();
-    console.log('ça recupère le form')
     const file = formData.get('file') as File;
-    console.log('ça File')
+    const arrayBuffer = await file.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
 
     const userId = formData.get('userId') as string;
-    console.log('ça récupères le file')
     const fileName = file.name;
 
-    const blob = await put(file.name, file, {
-        access: 'private',
-        contentType: 'application/pdf'
+    const blob = await put(file.name, buffer, {
+        access: 'public',
+        contentType: file.type || 'application/pdf',
+        addRandomSuffix: true,
     });
 
-    console.log(blob.url);
+
     const url = blob.url;
 
     try {
@@ -38,6 +39,7 @@ export async function POST(request: NextRequest) {
 }
 
 
+// get the documents either with the user.id (client) or with the userId (admin)
 export async function GET(request: NextRequest) {
 
     const user = AuthUser(request);

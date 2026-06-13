@@ -3,7 +3,7 @@ import {NextRequest, NextResponse} from "next/server";
 import {sql} from "@/app/lib/db";
 import {AdminCheck, AuthUser} from "@/app/lib/auth";
 
-
+// get the updates of one project for members and admin
 export async function GET(request: NextRequest, { params }: { params: Promise<{projectId: string}> }) {
         const user = AuthUser(request);
         if (!user) return NextResponse.json({error: "Unauthorized"}, { status: 401});
@@ -31,7 +31,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{p
         return NextResponse.json(updates);
 }
 
-
+// admin only, create an update to an existing project
 export async function POST(request: NextRequest, { params }: { params: Promise<{ projectId: string }>}): Promise<NextResponse> {
 
     if (!AdminCheck(request)) return NextResponse.json({error: "Unauthorized"}, {status: 401});
