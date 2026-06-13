@@ -53,7 +53,7 @@ export default function TimeLine({ Updates, isAdmin, onDelete } : timeLineProps 
 
     return (
         <div>
-            <div className={'relative w-[95%] ml-3 md:ml-0 h-100 overflow-x-scroll md:mx-6 mt-6 bg-white shadow-big border-3 '}>
+            <div className={'relative w-[95%] ml-3  h-100 overflow-x-scroll md:mx-6 mt-6 bg-white shadow-big border-3 '}>
 
                 <div className={'relative h-full'} style={{ minWidth: extendHR }}>
                     <div className={'absolute top-[50%] left-0 flex items-center'} style={{width : extendHR}}>
@@ -65,7 +65,7 @@ export default function TimeLine({ Updates, isAdmin, onDelete } : timeLineProps 
 
 
                     <div className={' ml-3 md:mx-auto w-fit pt-3'} >
-                        <p className={'text-xl font-title font-bold'}>Avancée de votre commande</p>
+                        <p className={'text-xl font-title font-bold font-title'}>Avancée de votre commande</p>
                         {attentionNeeded && <p className={'text-red-500 text-center'}>Attention: {attentionNeeded}</p>}
                     </div>
 
