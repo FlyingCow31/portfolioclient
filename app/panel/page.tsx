@@ -36,8 +36,8 @@ export default function Page() {
     }, []);
 
     return (
-      <div className={' min-h-screen bg-bg'}>
-        <main className={'w-full'}>
+      <div className={' min-h-screen bg-bg flex flex-col'}>
+        <main className={'w-full flex-1'}>
           <div className={'mx-auto w-fit p-3'}>
             <p className={'font-title font-bold '}>Gaël Tournier - Espace Client</p>
           </div>
