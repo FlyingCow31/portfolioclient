@@ -1,7 +1,9 @@
 
 import jwt from "jsonwebtoken";
 import { NextRequest } from "next/server";
-
+if (!process.env.JWT_SECRET && process.env.NODE_ENV === 'production') {
+    throw new Error('JWT_SECRET is not defined in production');
+}
 // check if admin
 export function AdminCheck(request: NextRequest): boolean {
     const token = request.cookies.get('token')?.value;
